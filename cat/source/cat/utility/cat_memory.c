@@ -34,7 +34,7 @@ cat_implementation_begin;
 typedef struct MemoryBlock
 {
     size_t sizeInBytes;
-    bool   isFree;
+    uint8_t   isFree;
     struct MemoryBlock* nextBlock;
 }
 MemoryBlock;
@@ -48,12 +48,12 @@ static inline void* GetBlockPayload(MemoryBlock* block)
 
 static inline MemoryBlock* GetBlockHeader(void* payloadPtr)
 {return (MemoryBlock*)((uint8_t*)payloadPtr - sizeof(MemoryBlock));}
-static void MergeAdjacentFreeBlocks();
+static void MergeAdjacentFreeBlocks(void);
 
 #pragma endregion
 
 #pragma region Aeris Functions
-static void MergeAdjacentFreeBlocks()
+static void MergeAdjacentFreeBlocks(void)
 {
     MemoryBlock* block = g_firstBlock;
 
@@ -75,8 +75,6 @@ static void MergeAdjacentFreeBlocks()
     }
 }
 #pragma endregion
-
-
 
 
 #ifdef CAT_DEBUG
@@ -182,14 +180,36 @@ cat_impl bool cat_memory_pool_create(size_t const pool_size)
     
     //****TO-DO-MEMORY: allocate and initialize pool.
 
-    return false;
+    if (g_memoryPool != NULL)
+        return false;
+
+    g_memoryPool = (uint8_t*)malloc(pool_size);
+    assert_or_bail(g_memoryPool) false;
+
+    g_memoryPoolSize = pool_size;
+
+    g_firstBlock = (MemoryBlock*)g_memoryPool;
+    g_firstBlock->sizeInBytes = pool_size - sizeof(MemoryBlock);
+    g_firstBlock->isFree = true;
+    g_firstBlock->nextBlock = NULL;
+
+    return true;
 }
 
 cat_impl bool cat_memory_pool_destroy(void)
 {
     //****TO-DO-MEMORY: safely deallocate pool allocated above.
 
-    return false;
+    if (!g_memoryPool)
+        return false;
+
+    free(g_memoryPool);
+
+    g_memoryPool = NULL;
+    g_firstBlock = NULL;
+    g_memoryPoolSize = 0;
+
+    return true;
 }
 
 cat_impl void* cat_memory_alloc(size_t const block_size)
