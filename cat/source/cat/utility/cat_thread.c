@@ -154,10 +154,6 @@ bool AerisTasks_Submit(void (*func)(void*), void* data)
 
 #pragma endregion
 
-#pragma region Aeris Task System - Test
-
-#pragma endregion
-
 static int cat_thrd_internal_entry_point(cat_thread_params_t const* const p_thread_params)
 {
     assert_or_bail(p_thread_params) 1;
@@ -219,6 +215,30 @@ cat_impl bool cat_thread_rename(cstr_t const name)
 
 #include "cat/utility/cat_time.h"
 #include "cat/utility/cat_console.h"
+
+
+#pragma region Aeris Task System - Test
+static void Aeris_PrintTask(void* data)
+{
+    cstr_t msg = (cstr_t)data;
+    printf("\nTask: %s", msg);
+}
+
+void AerisTasks_Test(void)
+{
+	cat_console_clear();
+
+    AerisTasks_Init();
+
+    AerisTasks_Submit(Aeris_PrintTask, "Hello from task 1!");
+    AerisTasks_Submit(Aeris_PrintTask, "Hello from task 2!");
+    AerisTasks_Submit(Aeris_PrintTask, "Hello from task 3!");
+
+    cat_platform_sleep(2 * cat_platform_time_rate());
+
+    AerisTasks_Shutdown();
+}
+#pragma endregion
 
 
 static int cat_thread_test_func(size_t const argc, void* const argv[])
