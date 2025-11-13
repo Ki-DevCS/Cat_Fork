@@ -32,6 +32,33 @@
 
 cat_implementation_begin;
 
+#pragma region Aeris Task System - Definitions
+typedef struct AerisTask
+{
+    void (*func)(void* data);
+    void* data;
+}
+AerisTask;
+
+#define AERIS_TASK_QUEUE_CAPACITY 64
+
+typedef struct AerisTaskQueue
+{
+    AerisTask tasks[AERIS_TASK_QUEUE_CAPACITY];
+    size_t head;
+    size_t tail;
+    size_t count;
+
+    mtx_t lock;
+    cnd_t signal;
+}
+AerisTaskQueue;
+
+static AerisTaskQueue g_taskQueue;
+static thrd_t g_workerThread;
+static int g_taskSystemRunning = 0;
+#pragma endregion
+
 
 static int cat_thrd_internal_entry_point(cat_thread_params_t const* const p_thread_params)
 {
