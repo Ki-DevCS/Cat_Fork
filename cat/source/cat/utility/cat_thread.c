@@ -59,7 +59,6 @@ static thrd_t g_workerThread;
 static int g_taskSystemRunning = 0;
 #pragma endregion
 
-
 #pragma region Aeris Task System - Worker Thread
 static int AerisWorkerThreadFunc(void* arg)
 {
@@ -96,9 +95,63 @@ static int AerisWorkerThreadFunc(void* arg)
 #pragma endregion
 
 #pragma region Aeris Task System - Init & Shutdown
+bool AerisTasks_Init(void)
+{
+    g_taskQueue.head = 0;
+    g_taskQueue.tail = 0;
+    g_taskQueue.count = 0;
+
+    mtx_init(&g_taskQueue.lock, mtx_plain);
+    cnd_init(&g_taskQueue.signal);
+
+    g_taskSystemRunning = 1;
+
+    // Create worker thread
+    int res = thrd_create(&g_workerThread, AerisWorkerThreadFunc, NULL);
+    return (res == thrd_success);
+}
+
+bool AerisTasks_Shutdown(void)
+{
+    mtx_lock(&g_taskQueue.lock);
+    g_taskSystemRunning = 0;
+    cnd_signal(&g_taskQueue.signal);
+    mtx_unlock(&g_taskQueue.lock);
+
+    thrd_join(g_workerThread, NULL);
+
+    mtx_destroy(&g_taskQueue.lock);
+    cnd_destroy(&g_taskQueue.signal);
+
+    return true;
+}
 #pragma endregion
 
 #pragma region Aeris Task System - Submit
+bool AerisTasks_Submit(void (*func)(void*), void* data)
+{
+    assert_or_bail(func) false;
+
+    mtx_lock(&g_taskQueue.lock);
+
+    if (g_taskQueue.count == AERIS_TASK_QUEUE_CAPACITY)
+    {
+        mtx_unlock(&g_taskQueue.lock);
+        return false; // queue full
+    }
+
+    g_taskQueue.tasks[g_taskQueue.tail].func = func;
+    g_taskQueue.tasks[g_taskQueue.tail].data = data;
+
+    g_taskQueue.tail = (g_taskQueue.tail + 1) % AERIS_TASK_QUEUE_CAPACITY;
+    g_taskQueue.count++;
+
+    cnd_signal(&g_taskQueue.signal);
+    mtx_unlock(&g_taskQueue.lock);
+
+    return true;
+}
+
 #pragma endregion
 
 #pragma region Aeris Task System - Test
