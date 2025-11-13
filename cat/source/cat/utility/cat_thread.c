@@ -60,6 +60,51 @@ static int g_taskSystemRunning = 0;
 #pragma endregion
 
 
+#pragma region Aeris Task System - Worker Thread
+static int AerisWorkerThreadFunc(void* arg)
+{
+    unused(arg);
+
+    while (g_taskSystemRunning)
+    {
+        mtx_lock(&g_taskQueue.lock);
+
+        // Wait for a task to be assigned
+        while (g_taskQueue.count == 0 && g_taskSystemRunning)
+            cnd_wait(&g_taskQueue.signal, &g_taskQueue.lock);
+
+        if (!g_taskSystemRunning)
+        {
+            mtx_unlock(&g_taskQueue.lock);
+            break;
+        }
+
+        // Pop a task
+        AerisTask task = g_taskQueue.tasks[g_taskQueue.head];
+        g_taskQueue.head = (g_taskQueue.head + 1) % AERIS_TASK_QUEUE_CAPACITY;
+        g_taskQueue.count--;
+
+        mtx_unlock(&g_taskQueue.lock);
+
+        // Execute the task
+        task.func(task.data);
+    }
+
+    return 0;
+}
+
+#pragma endregion
+
+#pragma region Aeris Task System - Init & Shutdown
+#pragma endregion
+
+#pragma region Aeris Task System - Submit
+#pragma endregion
+
+#pragma region Aeris Task System - Test
+
+#pragma endregion
+
 static int cat_thrd_internal_entry_point(cat_thread_params_t const* const p_thread_params)
 {
     assert_or_bail(p_thread_params) 1;
