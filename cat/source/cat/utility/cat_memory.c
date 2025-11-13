@@ -25,17 +25,15 @@
 #include <assert.h>
 #include <string.h>
 
-
 cat_implementation_begin;
-
 
 #pragma region Aeris Definitions
 
 typedef struct MemoryBlock
 {
     size_t sizeInBytes;
-    uint8_t   isFree;
     struct MemoryBlock* nextBlock;
+    size_t   isFree;
 }
 MemoryBlock;
 
@@ -214,12 +212,46 @@ cat_impl bool cat_memory_pool_destroy(void)
 
 cat_impl void* cat_memory_alloc(size_t const block_size)
 {
+    //****TO-DO-MEMORY: reserve block in managed pool.
     assert_or_bail(block_size) NULL;
 
-    //****TO-DO-MEMORY: reserve block in managed pool.
+    if (!g_memoryPool)
+        return NULL;
 
+    MemoryBlock* block = g_firstBlock;
+
+    // Search for the first block
+    while (block)
+    {
+        if (block->isFree && block->sizeInBytes >= block_size)
+        {
+            size_t leftover = block->sizeInBytes - block_size;
+
+            // Split block if space remains
+            if (leftover > sizeof(MemoryBlock))
+            {
+                uint8_t* newBlockAddr =
+                    (uint8_t*)block + sizeof(MemoryBlock) + block_size;
+
+                MemoryBlock* newBlock = (MemoryBlock*)newBlockAddr;
+
+                newBlock->sizeInBytes = leftover - sizeof(MemoryBlock);
+                newBlock->isFree = true;
+                newBlock->nextBlock = block->nextBlock;
+
+                block->nextBlock = newBlock;
+                block->sizeInBytes = block_size;
+            }
+
+            block->isFree = false;
+            return GetBlockPayload(block);
+        }
+
+        block = block->nextBlock;
+    }
     return NULL;
 }
+
 
 cat_impl bool cat_memory_dealloc(void* const p_block)
 {
@@ -227,7 +259,16 @@ cat_impl bool cat_memory_dealloc(void* const p_block)
 
     //****TO-DO-MEMORY: safely release block reserved above.
 
-    return false;
+	if (!g_memoryPool)
+        return false;
+
+    MemoryBlock* block = GetBlockHeader(p_block);
+    block->isFree = true;
+
+    //Merge Neighbours
+    MergeAdjacentFreeBlocks();
+
+    return true;
 }
 
 
