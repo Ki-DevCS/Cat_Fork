@@ -29,6 +29,56 @@
 cat_implementation_begin;
 
 
+#pragma region Aeris Definitions
+
+typedef struct MemoryBlock
+{
+    size_t sizeInBytes;
+    bool   isFree;
+    struct MemoryBlock* nextBlock;
+}
+MemoryBlock;
+
+static uint8_t* g_memoryPool = NULL;
+static size_t      g_memoryPoolSize = 0;
+static MemoryBlock* g_firstBlock = NULL;
+
+static inline void* GetBlockPayload(MemoryBlock* block)
+{ return (uint8_t*)block + sizeof(MemoryBlock);}
+
+static inline MemoryBlock* GetBlockHeader(void* payloadPtr)
+{return (MemoryBlock*)((uint8_t*)payloadPtr - sizeof(MemoryBlock));}
+static void MergeAdjacentFreeBlocks();
+
+#pragma endregion
+
+#pragma region Aeris Functions
+static void MergeAdjacentFreeBlocks()
+{
+    MemoryBlock* block = g_firstBlock;
+
+    while (block && block->nextBlock)
+    {
+        MemoryBlock* next = block->nextBlock;
+        uint8_t* blockEnd = (uint8_t*)block + sizeof(MemoryBlock) + block->sizeInBytes;
+
+        // If both blocks are free and are physically adjacent, merge them.
+        if (block->isFree && next->isFree && blockEnd == (uint8_t*)next)
+        {
+            block->sizeInBytes += sizeof(MemoryBlock) + next->sizeInBytes;
+            block->nextBlock = next->nextBlock;
+        }
+        else
+        {
+            block = next;
+        }
+    }
+}
+#pragma endregion
+
+
+
+
 #ifdef CAT_DEBUG
 typedef struct cat_malloc_metadata_s
 {
