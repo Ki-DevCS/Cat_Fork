@@ -170,6 +170,7 @@
     <ClCompile Include="..\..\..\source\cat\cat.c" />
     <ClCompile Include="..\..\..\source\cat\utility\cat_console.c" />
     <ClCompile Include="..\..\..\source\cat\utility\cat_memory.c" />
+    <ClCompile Include="..\..\..\source\cat\utility\cat_test.c" />
     <ClCompile Include="..\..\..\source\cat\utility\cat_time.c" />
     <ClCompile Include="..\..\..\source\cat\utility\cat_thread.c" />
   </ItemGroup>
@@ -178,6 +179,7 @@
     <ClInclude Include="..\..\..\include\cat\cat_platform.h" />
     <ClInclude Include="..\..\..\include\cat\utility\cat_console.h" />
     <ClInclude Include="..\..\..\include\cat\utility\cat_memory.h" />
+    <ClInclude Include="..\..\..\include\cat\utility\cat_test.h" />
     <ClInclude Include="..\..\..\include\cat\utility\cat_time.h" />
     <ClInclude Include="..\..\..\include\cat\utility\cat_thread.h" />
   </ItemGroup>

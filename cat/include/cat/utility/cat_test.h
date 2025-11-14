@@ -14,20 +14,47 @@
 /// limitations under the License.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*! \file cat.h
-*   \brief Main include.
-*/
 
-#ifndef _CAT_H_
-#define _CAT_H_
+#ifndef _CAT_TEST_H
+#define _CAT_TEST_H
 
 
 #include "cat/cat_platform.h"
-#include "cat/utility/cat_time.h"
 #include "cat/utility/cat_console.h"
-#include "cat/utility/cat_memory.h"
-#include "cat/utility/cat_thread.h"
-#include "cat/utility/cat_test.h"
 
 
-#endif // #ifndef _CAT_H_
+cat_interface_begin;
+
+
+typedef int(*cat_test_fn)(void);
+
+typedef struct cat_test
+{
+    const char* name;
+    cat_test_fn fn;
+} cat_test;
+
+/* Register a test. Call this before cat_run_all_tests(). */
+cat_decl void cat_register_test(const char* name, cat_test_fn fn);
+
+/* Run all registered tests and track pass/fail. */
+cat_decl void cat_run_all_tests(void);
+
+/* Print a pass/fail summary at the end. */
+cat_decl void cat_print_summary(void);
+
+// Assertion helpers, returns current line number.
+#define CAT_ASSERT(cond) \
+    do { if (!(cond)) return __LINE__; } while (0)
+
+#define CAT_ASSERT_EQ(a, b) \
+    do { if ((a) != (b)) return __LINE__; } while (0)
+
+#define CAT_ASSERT_NEQ(a, b) \
+    do { if ((a) == (b)) return __LINE__; } while (0)
+
+
+cat_interface_end;
+
+
+#endif // #ifndef _CAT_TEST_H_

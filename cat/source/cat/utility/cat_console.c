@@ -21,6 +21,7 @@
 
 #include "cat/utility/cat_console.h"
 #include "cat/cat_platform.inl"
+#include "cat/utility/cat_test.h"
 
 
 #ifdef _WIN32
@@ -469,11 +470,12 @@ cat_implementation_end;
 cat_implementation_begin;
 
 
-cat_noinl void cat_console_test(void)
+cat_noinl int cat_console_test(void)
 {
     cat_console_clear();
-    cat_console_draw_test_patch();
+    CAT_ASSERT(cat_console_draw_test_patch());
     cat_platform_sleep(cat_platform_time_rate());
+    return 0;
 }
 
 

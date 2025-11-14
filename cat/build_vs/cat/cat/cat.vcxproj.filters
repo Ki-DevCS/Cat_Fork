@@ -36,6 +36,9 @@
     <ClCompile Include="..\..\..\source\cat\utility\cat_thread.c">
       <Filter>Source Files\utility</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\source\cat\utility\cat_test.c">
+      <Filter>Source Files\utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\cat\cat.h">
@@ -54,6 +57,9 @@
       <Filter>Header Files\utility</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\cat\utility\cat_thread.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cat\utility\cat_test.h">
       <Filter>Header Files\utility</Filter>
     </ClInclude>
   </ItemGroup>

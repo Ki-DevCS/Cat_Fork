@@ -21,6 +21,7 @@
 
 #include "cat/utility/cat_memory.h"
 #include "cat/cat_platform.inl"
+#include "cat/utility/cat_test.h"
 
 #include <assert.h>
 #include <string.h>
@@ -276,7 +277,7 @@ cat_impl bool cat_memory_dealloc(void* const p_block)
 #include "cat/utility/cat_console.h"
 
 
-cat_noinl void cat_memory_test(void)
+cat_noinl int cat_memory_test(void)
 {
     bool result = false;
     void* block_lh = cat_malloc(1024);
@@ -299,6 +300,8 @@ cat_noinl void cat_memory_test(void)
     block_lh = NULL;
     cat_free(block_rh);
     block_rh = NULL;
+    CAT_ASSERT(result);
+    return 0;
 }
 
 

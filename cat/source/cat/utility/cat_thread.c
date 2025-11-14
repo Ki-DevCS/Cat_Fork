@@ -22,6 +22,7 @@
 
 #include "cat/utility/cat_thread.h"
 #include "cat/cat_platform.inl"
+#include "cat/utility/cat_test.h"
 
 #include <threads.h>
 #ifdef _WIN32
@@ -224,19 +225,22 @@ static void Aeris_PrintTask(void* data)
     printf("\nTask: %s", msg);
 }
 
-void AerisTasks_Test(void)
+int AerisTasks_Test(void)
 {
+    int16_t val = 1;
 	cat_console_clear();
 
     AerisTasks_Init();
 
-    AerisTasks_Submit(Aeris_PrintTask, "Hello from task 1!");
-    AerisTasks_Submit(Aeris_PrintTask, "Hello from task 2!");
-    AerisTasks_Submit(Aeris_PrintTask, "Hello from task 3!");
+    if(AerisTasks_Submit(Aeris_PrintTask, "Hello from task 1!")
+    && AerisTasks_Submit(Aeris_PrintTask, "Hello from task 2!")
+    && AerisTasks_Submit(Aeris_PrintTask, "Hello from task 3!"))
+        val = 0;
 
     cat_platform_sleep(2 * cat_platform_time_rate());
 
     AerisTasks_Shutdown();
+    return val;
 }
 #pragma endregion
 
@@ -271,11 +275,12 @@ static int thrd_test_func(void* const arg)
     return 0;
 }
 
-cat_noinl void cat_thread_test(void)
+cat_noinl int cat_thread_test(void)
 {
     thrd_t thrd = { 0 };
     int thrd_res = 0;
     int print_count = 10000;
+    int val = 1;
     void* const args[] = {
         &thrd,       // thread object
         __FUNCTION__,// thread name
@@ -288,15 +293,19 @@ cat_noinl void cat_thread_test(void)
     cat_console_clear();
     {
         thrd_res = thrd_create(&thrd, &thrd_test_func, NULL);
-        assert_or_bail(thrd_res == thrd_success);
+        CAT_ASSERT(thrd_res == thrd_success);
+        val = 0;
         thrd_join(thrd, &thrd_res);
     }
     {
         thrd_res = cat_thrd_create(&thrd, &params);
-        assert_or_bail(thrd_res == thrd_success);
+        CAT_ASSERT(thrd_res == thrd_success);
+        val = 0;
         thrd_join(thrd, &thrd_res);
     }
     cat_platform_sleep(cat_platform_time_rate());
+
+    return val;
 }
 
 

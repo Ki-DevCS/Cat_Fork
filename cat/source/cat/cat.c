@@ -22,24 +22,25 @@
 #include "cat/cat.h"
 
 
-extern void cat_time_test(void);
-extern void cat_console_test(void);
-extern void cat_memory_test(void);
-extern void cat_thread_test(void);
+extern int cat_time_test(void);
+extern int cat_console_test(void);
+extern int cat_memory_test(void);
+extern int cat_thread_test(void);
 
 //Aeris Test
-extern void AerisTasks_Test(void);
+extern int AerisTasks_Test(void);
 
-cat_noinl int cat_test_all(int const argc, char const* const argv[])
+cat_noinl int cat_test_all(int const argc, cstr_t const* const argv[])
 {
     unused2(argc, argv);
-    cat_time_test();
-    cat_console_test();
-    cat_memory_test();
+    cat_register_test("Time Test",        cat_time_test);
+    cat_register_test("Console Test",     cat_console_test);
+    cat_register_test("Memory Test",      cat_memory_test);
+    cat_register_test("Aeris Tasks Test", AerisTasks_Test);
+    cat_register_test("Thread Test",      cat_thread_test);
 
-	//Aeris Test
-    AerisTasks_Test();
+    cat_run_all_tests();
+    cat_print_summary();
 
-    cat_thread_test();
     return 0;
 }
